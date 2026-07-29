@@ -1,6 +1,6 @@
 # DIY Ultrasonic Distance Measurement System 📏
 
-# Ultrasonic Distance Measurement System 📏
+
 
 ## Overview
 
