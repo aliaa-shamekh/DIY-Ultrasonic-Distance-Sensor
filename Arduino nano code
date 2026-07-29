@@ -1,0 +1,61 @@
+#include <Arduino.h> 
+/* ===== Global flags ===== */ 
+volatile bool triggered = false; 
+volatile bool echo_done = false; 
+/* ===== Pin definitions ===== */ 
+#define TRIG_IN 2 // INT0 
+#define ECHO_IN 3 // INT1 
+#define ECHO_OUT 10 // Output pulse 
+/* ===== Setup ===== */ 
+void setup() { 
+  Serial.begin(9600); 
+  Serial.println("start"); 
+  /* Burst pins: D4 & D6 */ 
+  DDRD |= B01010000; // D4, D6 OUTPUT 
+  /* Supply control pin: D5 */ 
+  DDRD |= B00100000; // D5 OUTPUT 
+  /* Echo output */ 
+  DDRB |= B00000100; // D10 OUTPUT 
+  pinMode(TRIG_IN, INPUT_PULLUP); 
+  pinMode(ECHO_IN, INPUT_PULLUP); 
+  attachInterrupt(digitalPinToInterrupt(TRIG_IN), triggerISR, FALLING); 
+  attachInterrupt(digitalPinToInterrupt(ECHO_IN), echoISR, CHANGE); 
+  } 
+/* ===== Main loop ===== */ 
+void loop() { 
+  if (triggered) { 
+  Serial.println("trigger"); 
+  delayMicroseconds(150); 
+  /* Enable supply (D5 LOW) */ 
+  PORTD &= B11011111; 
+  /* ---- 8 cycles @ ~40kHz ---- */ 
+  for (uint8_t i = 0; i < 7; i++) { 
+  PORTD |= B00010000; // D4 HIGH 
+  PORTD &= B10111111; // D6 LOW 
+  delayMicroseconds(12); 
+  PORTD &= B11101111; // D4 LOW 
+  PORTD |= B01000000; // D6 HIGH 
+  delayMicroseconds(12); 
+} 
+/* Final half cycle */ 
+PORTD |= B00010000; 
+PORTD &= B10111111; 
+delayMicroseconds(12); 
+/* End burst + power off */ 
+PORTD &= B10001111; // D4, D5, D6 LOW 
+/* Start echo output */ 
+PORTB |= B00000100; 
+triggered = false; 
+} 
+if (echo_done) { 
+  PORTB &= B11111011; // D10 LOW 
+  echo_done = false; 
+} 
+} 
+/* ===== ISRs ===== */ 
+void triggerISR() { 
+  triggered = true; 
+  } 
+  void echoISR() { 
+    echo_done = true; 
+}
