@@ -58,7 +58,7 @@ The Arduino continuously reads the sensor data and displays the measured distanc
 
 ## Challenges & Debugging
 
-During development, the sensor initially returned incorrect readings (`0 cm`). The issue was investigated by checking:
+During development, the sensor initially returned incorrect readings (`0 cm`). The issue was investigated by checking the following using osciloscope:
 
 * Wiring connections
 * Power supply stability
